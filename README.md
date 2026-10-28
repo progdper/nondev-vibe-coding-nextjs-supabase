@@ -1,4 +1,13 @@
-﻿# (앱 이름)
+﻿> **SQLite 로컬 개발용 브랜치 (`sqlite-local`)**
+>
+> - `main`: Supabase PostgreSQL 중심 구성
+> - `sqlite-local`: 기본 개발·검사·빌드·DB 관리 명령에 SQLite 사용
+> - Supabase는 `:supabase`·`db:supabase:*` 명령으로 선택
+> - DB 선택과 로그인·인증 방식은 별개
+>
+> 자세한 명령은 [실행 명령 안내](docs/SCRIPTS.md)를 참고하세요.
+
+# (앱 이름)
 
 프로젝트를 시작하기 전에 [docs/SETUP.md](docs/SETUP.md)를 먼저 읽으세요.
 
