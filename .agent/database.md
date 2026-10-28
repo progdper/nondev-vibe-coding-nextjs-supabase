@@ -3,9 +3,24 @@
 Prisma, Supabase PostgreSQL, 모델·쿼리·데이터 권한·마이그레이션 작업에 적용한다.
 공통 승인 규칙과 작업 흐름은 [AGENTS.md](../AGENTS.md)를 따른다.
 
+## 시작 시 DB와 인증 선택 확인
+
+- 최초 기본 화면 실행만 원하는 사용자에게 Supabase 가입·DB·인증 선택을 선행 조건으로 요구하지 않는다. DB 저장이나 가입·로그인 기능을 계획하거나 Supabase 연결·배포가 필요해졌을 때 [시작 안내의 선택 표](../docs/SETUP.md#db와-인증이-필요해지면-선택하기)와 [프로젝트 확인표](../docs/CUSTOMIZE_PROJECT.md#4-db가-필요한-프로젝트)를 안내한다.
+- 실제 package.json·DB 연결·인증 코드와 확인된 기존 선택을 먼저 살핀다. Supabase 계정 없음·계정만 있음·테스트 프로젝트 준비됨·운영 프로젝트만 있음 중 필요한 정보를 비밀값 없이 확인한다. 계정 존재만으로 프로젝트 생성·DB 연결·인증 구현이 완료됐다고 판단하지 않는다. 이미 확인한 동일 범위는 반복해서 묻지 않는다.
+- 개발 DB, 배포 DB, 인증 방식을 각각 확인한다. 계정 없이 로컬 DB부터 개발하려면 SQLite를 안내하고, 계정만 있으면 Supabase 사용이 필요할 때 프로젝트 생성 절차를 안내한다. 테스트 프로젝트가 준비되어 있어도 DB를 SQLite로 유지할 수 있다. 사용자의 계정이 있다는 이유로 Supabase 사용을 자동 결정하지 않는다.
+- DB 모드와 인증은 별개이다. SQLite 명령은 저장 대상만 선택하며 Supabase Auth를 로컬 인증으로 교체하지 않는다. 현재 원본 보일러플레이트에는 가입·로그인이 없으므로 [인증 선택 안내](../docs/AUTHENTICATION.md)를 바탕으로 별도 설계한다. 기능이 추가된 프로젝트는 실제 구현을 확인하며, Supabase Auth가 있으면 SQLite에서도 실제 로그인 테스트에 별도 테스트 인증 환경이 필요하다고 설명한다.
+- 운영 프로젝트만 있으면 운영 .env·계정·DB를 테스트에 재사용하지 않고 SQLite DB 검사 또는 별도 테스트 Supabase 환경을 제안한다. Next.js dev·check·build·start가 환경 파일을 읽을 수 있음을 고려해, 운영 .env가 있으면 실제 환경 파일을 제외한 별도 작업 복사본에서 검증한다. DB 전용 명령의 격리를 전체 앱·외부 서비스 격리로 확대 해석하지 않는다.
+- 계정·프로젝트 준비 여부는 사용자 답변과 승인 범위 내에서 확인 가능한 정보로 판단한다. 비밀번호·키·전체 .env를 채팅에 요구하지 않는다. 안내나 선택만으로 패키지 설치·환경 변수 변경·인증 구현·마이그레이션·배포를 실행하지 않으며, 실제 변경은 구체적인 제안과 승인 범위를 따른다.
+
 ## 현재 구성 확인
 
-- `prisma/schema.prisma`, `prisma.config.ts`, `src/lib/db.ts`, `src/lib/env.ts`와 의존성 버전을 먼저 확인한다.
+- DB가 필요한 작업은 SQLite 로컬용인지 Supabase PostgreSQL용인지 먼저 확인한다. 개발 서버의 기본 dev는 SQLite이며 dev:supabase는 Supabase용이다. 기본 typecheck·check·build·start는 SQLite용이고 Supabase는 :supabase 명령을 사용한다. `db:generate`·`db:validate`·`db:migrate:*`·`db:studio`도 SQLite용이며 Supabase는 `db:supabase:*`를 사용한다. 연결 검사는 기본 `db:check`가 로컬 SQLite용이고 `db:supabase:check`는 Supabase용이다. 기존 `db:sqlite:*` 명령은 유지한다. 전체 명령·별칭·생성물·DB 영향의 기준은 [실행 명령 안내](../docs/SCRIPTS.md)를 확인하고, 로컬 저장·전환 절차는 [SQLite 안내](../docs/SQLITE.md)를 따른다. 명령이나 실행 순서를 변경하면 package.json·실행 코드와 SCRIPTS.md의 일치 여부를 함께 검토한다. 이미 합의한 선택은 반복해서 묻지 않는다.
+- SQLite URL은 prisma/sqlite/dev.db로 고정되며 SQLite 설정은 .env를 읽지 않는다. SQLite 앱 실행은 원격 DB 변수를 비워 사용을 차단한다. 운영 .env는 읽기·쓰기 검증에 재사용하지 않는다.
+- PostgreSQL 모델·이력과 SQLite 모델·이력은 분리한다. 공통 기능의 모델·필드·관계·제약·날짜 처리와 코드 호환성을 함께 검토한다. Client 출력은 공유하므로 같은 폴더에서 두 모드를 동시에 실행하지 않고 대상 모드의 명령으로 다시 생성·재시작한다.
+- 로컬 SQLite의 dev·dev:sqlite는 포함된 미적용 마이그레이션을 migrate deploy로 적용한 뒤 Client 생성·서버 실행을 수행한다. 준비 실패 시 중단하며 reset·db push로 우회하지 않는다. 새로운 이력을 생성·공유받으면 실행 전에 SQL과 데이터 보존 영향을 검토한다. 이 자동 적용을 Supabase·운영 DB로 확대하지 않는다. db:sqlite:setup은 서버 없이 같은 준비만 수행한다.
+- SQLite 데이터는 재시작해도 유지되므로 삭제·초기화를 임의 실행하지 않는다. 로컬 데이터 파일·journal·WAL은 Git 제외하고 마이그레이션만 공유한다. 모드 전환은 데이터 자동 이전을 뜻하지 않는다. SQLite 성공을 PostgreSQL·권한·배포 성공으로 확대하지 않는다.
+
+- `prisma/supabase/schema.prisma`, `prisma.config.ts`, `src/lib/db.ts`, `src/lib/env.ts`와 의존성 버전을 먼저 확인한다.
 - 실제 환경 파일 전체를 출력하지 않는다. `.env.example`의 변수명과 필요한 설정 여부부터 확인한다.
 - 앱은 `DATABASE_URL`, Prisma CLI는 `DIRECT_URL`을 사용한다. 실제 코드에서 이 구성이 유지되는지 확인한다.
 - 앱은 Supabase Transaction pooler, CLI·마이그레이션은 적합한 Direct 또는 Session pooler 연결을 사용한다.
@@ -25,6 +40,16 @@ Prisma, Supabase PostgreSQL, 모델·쿼리·데이터 권한·마이그레이�
 - 쿼리는 필요한 필드만 선택하고 목록의 조회 범위를 제한한다.
 - 여러 변경이 하나의 작업이어야 하면 트랜잭션 필요성을 검토한다.
 - 동적 SQL 문자열 연결을 피하고 사용자 입력은 검증한다.
+
+## SQLite 모델 변경을 Supabase에 반영
+
+- 이 절차는 SQLite에서 만든 기능의 모델 변경을 Supabase에도 반영해 달라는 요청에 적용한다. SQLite 변경마다 Supabase를 자동 수정하거나 두 파일이 완전히 같아야 한다고 가정하지 않는다.
+- 먼저 `prisma/sqlite/schema.prisma`와 `prisma/supabase/schema.prisma`, 관련 서버 코드·인증 연결·각 DB의 마이그레이션 이력을 비교하고 반영할 기능 범위를 확인한다. 저장소 파일 비교를 실제 DB 상태 확인으로 설명하지 않는다.
+- SQLite 파일 전체를 Supabase 스키마에 덮어쓰지 않는다. 모델·필드·관계·기본값·고유 제약·인덱스·매핑·날짜 처리와 PostgreSQL 전용 타입 등 의미 차이를 검토한다. UUID 값의 형식과 참조 필드의 타입도 확인하며 모든 문자열 id에 일괄적으로 @db.Uuid를 붙이지 않는다.
+- Supabase에만 있는 모델·설정·주석은 보존한다. 삭제·이름 변경·불일치가 의도된 것인지 불명확하면 사용자에게 확인한다. generator·datasource와 DB별 마이그레이션 경로를 유지하고 SQLite 이력을 PostgreSQL 이력으로 복사하지 않는다.
+- 필요한 모델 변경과 DB별 조정 내용을 구분해 수정 경로·이유·기존 데이터 영향·diff·검증 방법을 제시하고, 승인된 항목만 반영한다. 이미 같은 변경안이 승인되었다면 반복 승인 요청은 하지 않는다. 자동 복제 스크립트를 요청 없이 추가하지 않는다.
+- 스키마 반영 승인을 마이그레이션 생성·실행, 데이터 이전, DB 초기화·삭제 또는 배포 승인으로 해석하지 않는다. 실제 DB 변경·데이터 보존은 아래 마이그레이션 지침과 별도 승인 범위를 따른다.
+- 승인 범위에서 두 스키마의 문법·Client·관련 코드 호환성을 검증하되, 공유 Client 출력 때문에 모드를 동시에 실행하지 않는다. 스키마 반영·Client 생성·DB 적용·데이터 이전·배포 결과와 미검증 항목을 각각 구분해 보고한다.
 
 ## 스키마 문서 주석
 
@@ -62,10 +87,10 @@ Prisma, Supabase PostgreSQL, 모델·쿼리·데이터 권한·마이그레이�
 - 스키마 파일 변경, 클라이언트 생성, 마이그레이션 생성, DB 적용을 각각 구분해 설명한다.
 - 모델 수정 승인을 마이그레이션 생성·실행 승인으로 해석하지 않는다.
 - 명령을 실행하기 전에 개발·Preview·운영 중 대상 환경을 확인한다. 비밀 URL은 출력하지 않는다.
-- `npm run db:migrate:dev`는 파일을 만들고 개발 DB도 변경한다. 생성만 하는 작업으로 설명하지 않는다.
+- SQLite의 `npm run db:migrate:dev`와 Supabase의 `npm run db:supabase:migrate:dev`는 파일을 만들고 각각의 개발 DB도 변경한다. 생성만 하는 작업으로 설명하지 않는다.
 - 개발 마이그레이션에서 shadow DB 권한 오류가 발생하면 원인을 확인하고 필요한 설정을 제안한다.
 - 운영에 `migrate dev`, `migrate reset`, `db push`를 실행하지 않는다.
-- 운영 반영은 검토된 이력과 별도 승인을 바탕으로 `npm run db:migrate:deploy`를 사용한다.
+- 운영 반영은 검토된 이력과 별도 승인을 바탕으로 `npm run db:supabase:migrate:deploy`를 사용한다.
 - Supabase SQL Editor에서 같은 테이블을 임의 변경해 Prisma 이력과 어긋나게 만들지 않는다.
 - 파괴적 변경은 백업·복구와 기존 코드 호환성을 먼저 검토한다.
 
@@ -96,8 +121,11 @@ Prisma, Supabase PostgreSQL, 모델·쿼리·데이터 권한·마이그레이�
 
 ## 검증
 
-- `npm run db:validate`는 문법 검사이며 실제 DB 연결·권한·쿼리 검증이 아니다.
-- 실제 접속 확인에는 `npm run db:check`를 사용한다. 앱의 SELECT 1과 Prisma CLI의 읽기 전용 스키마 조회만 수행하며 비밀값을 출력하지 않는다. 마이그레이션·쓰기 검증을 대신하지 않는다.
-- 승인된 경우 `npm run db:generate`로 클라이언트를 생성하고 타입·빌드를 확인한다.
+- postinstall은 로컬에서 SQLite Client, VERCEL 환경에서는 Supabase Client를 생성할 뿐 DB에 접속·마이그레이션하지 않는다. 직접 Prisma CLI를 호출하면 루트 prisma.config.ts의 Supabase 설정이 기본이므로 명령을 혼동하지 않는다. Supabase 연결 점검도 해당 설정을 명시하며 로컬 테스트에 운영 .env를 사용하지 않는다.
+
+- SQLite의 `npm run db:validate`와 Supabase의 `npm run db:supabase:validate`는 문법 검사이며 실제 DB 연결·권한·쿼리 검증이 아니다.
+- SQLite 접속 확인에는 `npm run db:check`를 사용한다. Node.js 24 내장 SQLite로 기존 파일을 읽기 전용으로 열고 SELECT 1을 실행한다. .env 로딩·Client 생성·파일 생성·마이그레이션·데이터 쓰기는 하지 않으며 파일이 없으면 준비 명령을 안내하고 실패한다. 앱의 Prisma 어댑터·테이블·CRUD·권한 검증을 대신하지 않는다.
+- Supabase 실제 접속 확인에는 `npm run db:supabase:check`를 사용한다. 앱의 SELECT 1과 Prisma CLI의 읽기 전용 스키마 조회만 수행하며 비밀값을 출력하지 않는다. 마이그레이션·쓰기 검증을 대신하지 않는다.
+- 승인된 경우 대상에 맞춰 `npm run db:generate` 또는 `npm run db:supabase:generate`로 클라이언트를 생성하고 타입·빌드를 확인한다.
 - 실제 접속·CRUD 검증은 승인된 개발 DB와 테스트 데이터로 수행하고 운영 데이터를 사용하지 않는다.
 - DB에 적용하지 않았다면 그 사실과 사용자가 추가로 해야 할 작업을 명확히 알린다.

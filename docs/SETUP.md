@@ -1,6 +1,6 @@
 ﻿# 설치와 환경 설정
 
-새 프로젝트를 시작하기 위한 최소 보일러플레이트입니다. Next.js App Router, TypeScript, Tailwind CSS, Zod, React Hook Form, `@hookform/resolvers`, Prisma 7, ESLint, Prettier와 VS Code 설정을 포함합니다. Supabase는 PostgreSQL 데이터베이스로 사용합니다.
+새 프로젝트를 시작하기 위한 최소 보일러플레이트입니다. Next.js App Router, TypeScript, Tailwind CSS, Zod, React Hook Form, `@hookform/resolvers`, Prisma 7, ESLint, Prettier와 VS Code 설정을 포함합니다. 배포용 DB는 Supabase PostgreSQL을 사용하며, 로컬 개발은 파일 기반 SQLite도 선택할 수 있습니다.
 
 CRUD·로그인 화면은 없으며 기본 `User` 모델만 포함합니다. Zod는 환경 변수 검증에 사용하며 React Hook Form과 resolvers는 필요한 폼을 만들 때 사용할 수 있도록 설치 구성에만 포함합니다. create-next-app 16.4.3의 TypeScript·Tailwind·ESLint·App Router 생성 결과를 기본으로 사용하고, Supabase 연결과 개발 편의를 위한 설정을 추가했습니다.
 
@@ -38,7 +38,7 @@ node 버전은 v24로 시작해야 합니다. 설치와 서버 실행은 시간�
 
 터미널에 표시된 주소를 브라우저에서 엽니다. 기본 주소는 [http://localhost:3000](http://localhost:3000)이며, 다른 프로그램이 해당 포트를 사용하면 다른 주소가 표시될 수 있습니다. 화면을 사용하는 동안 터미널은 켜 두고, 종료하려면 해당 터미널에서 Ctrl+C를 누릅니다. 다시 시작할 때는 npm run dev를 실행하면 됩니다.
 
-처음 실행에 Supabase 가입이나 .env 파일은 필요하지 않습니다. DB 기능을 만들 때 아래의 Supabase 설정을 진행하세요.
+처음 실행에 Supabase 가입이나 .env 파일은 필요하지 않습니다. **기본 `npm run dev`는 로컬 SQLite 모드입니다.** 실행 시 SQLite 파일·테이블 준비와 Prisma Client 생성을 자동으로 처리한 뒤 개발 서버를 시작합니다. 별도로 `npm run db:sqlite:setup`을 먼저 실행할 필요는 없습니다. 기존 데이터를 초기화하지 않으며, 준비에 실패하면 서버를 시작하지 않습니다. 공유받은 새 마이그레이션은 실행 전에 변경 내용과 데이터 보존 여부를 검토하세요. 자세한 내용은 [SQLite 안내](SQLITE.md)를 참고하세요. SQLite는 재시작해도 데이터가 유지됩니다. Supabase를 사용할 때는 아래 연결 설정 후 `npm run dev:supabase`로 실행합니다. 기본 `typecheck`·`check`·`build`·`start`도 SQLite용입니다. Supabase에는 `typecheck:supabase`·`check:supabase`·`build:supabase`·`start:supabase`를 사용합니다. DB 관리용 `db:generate`·`db:validate`·`db:migrate:*`·`db:studio`도 SQLite 기준이며 Supabase는 `db:supabase:*` 명령을 사용합니다. 기존 `:sqlite` 명령도 동일한 로컬 용도로 유지합니다. 설치 후 Client 생성은 로컬에서 SQLite, Vercel에서 Supabase를 선택하며 DB를 변경하지 않습니다.
 
 node_modules, .next, src/generated_prisma, next-env.d.ts, tsconfig.tsbuildinfo는 설치·실행·검사 시 자동 생성됩니다. 재사용할 배포본에는 넣지 않으며 Git에서도 제외합니다. package-lock.json, .env.example, .vscode는 유지합니다.
 
@@ -49,6 +49,23 @@ VS Code에서 추천 확장을 확인하면 ESLint, Prettier, Prisma를 선택�
 .vscode/settings.json은 일반 파일에 UTF-8, Markdown에 UTF-8 BOM을 사용하도록 설정합니다. .editorconfig에도 같은 인코딩 원칙이 있습니다. 다른 편집기는 EditorConfig 지원 여부를 확인하세요.
 
 한글이 깨져 보이면 먼저 화면 오른쪽 아래의 인코딩 표시를 확인하고 Codex에게 원인 확인을 요청하세요. 깨진 내용을 그대로 저장하거나 임의로 인코딩을 바꿔 덮어쓰지 마세요.
+
+## DB와 인증이 필요해지면 선택하기
+
+처음 기본 화면을 실행할 때는 아래 항목을 모두 결정할 필요가 없습니다. 데이터 저장이나 회원가입·로그인 기능을 만들 때 Supabase 준비 상황을 확인하고, **개발 DB·배포 DB·인증 방식을 따로 선택**하세요. 에이전트는 이미 확인한 답변을 활용하며 같은 내용을 매번 묻지 않습니다.
+
+| 현재 상황                     | 진행 방향                                                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Supabase 계정이 없음          | 로컬 DB는 SQLite로 시작할 수 있습니다. Supabase 가입은 해당 DB나 Auth를 사용하기로 정할 때 진행합니다.       |
+| 계정만 있고 프로젝트는 없음   | SQLite를 계속 사용하거나, Supabase가 필요한 경우 테스트 프로젝트를 생성합니다.                               |
+| 별도 테스트 프로젝트가 준비됨 | DB와 인증 중 사용할 기능을 선택하고 연결합니다. 계정·프로젝트가 있다는 이유로 SQLite를 바꿀 필요는 없습니다. |
+| 운영 프로젝트만 있음          | 운영 .env·DB·인증 계정을 테스트에 재사용하지 말고, SQLite DB 검사 또는 별도 테스트 프로젝트를 준비합니다.    |
+
+**SQLite 선택은 인증 방식 변경이 아닙니다.** 이 보일러플레이트에는 가입·로그인이 아직 없습니다. Supabase 계정 생성이나 기본 User 모델만으로 인증이 구현되지도 않습니다. Supabase Auth를 사용하는 기능을 추가했다면 DB가 SQLite여도 실제 회원가입·로그인에는 테스트 Supabase 인증 환경이 필요합니다. Next.js 인증 라이브러리를 사용할 수도 있지만 패키지·모델·세션 처리는 별도로 설계해야 합니다.
+
+운영 .env가 이미 있는 프로젝트에서 앱을 검증하려면 실제 환경 파일을 제외한 별도 작업 복사본을 사용하세요. SQLite의 DB 변수 차단은 Next.js가 읽는 인증·외부 서비스 설정 전체를 격리하는 기능이 아닙니다. 준비 여부는 비밀번호·키를 채팅에 보내지 않고 알려 주면 됩니다. 이 안내가 계정을 자동 조회하거나 연결·인증 구현을 자동 실행하는 것은 아닙니다.
+
+[SQLite 개발](SQLITE.md) · [Supabase 프로젝트 생성·DB 연결](SUPABASE_SETUP.md) · [인증 방식 선택](AUTHENTICATION.md) · [내 프로젝트 확인표](CUSTOMIZE_PROJECT.md#4-db가-필요한-프로젝트)
 
 ## 기능 계획과 필요한 안내 선택
 
@@ -107,13 +124,17 @@ src/
 certs/
   supabase-ca.crt          다운로드한 공개 CA 인증서
 prisma/
-  schema.prisma           DB 연결·클라이언트 생성 설정과 User 모델
+  sqlite/                 로컬 SQLite용 스키마·마이그레이션·자동 생성 DB 파일
+    schema.prisma
+  supabase/               Supabase PostgreSQL용 스키마·마이그레이션
+    schema.prisma
 public/                   기본 로고와 정적 이미지
 docs/                    설치·DB·배포·Codex 안내
 plans/                   기능별 작업 계획과 작성 양식
 .vscode/                  편집기 설정·확장 추천
 .env.example              환경 변수 작성 예시
-prisma.config.ts          Prisma CLI의 환경 변수·연결 설정
+prisma.config.ts          Supabase Prisma CLI의 환경 변수·연결 설정
+prisma.sqlite.config.ts   로컬 SQLite Prisma CLI 설정
 next.config.ts            Next.js·Tailwind Turbopack·CA 파일 배포 설정
 package.json              패키지와 실행 명령
 package-lock.json         설치 버전 고정
@@ -143,6 +164,8 @@ Tailwind CSS 4가 구성되어 있습니다. 기준 생성 결과처럼 src/app/
 
 ## 3. Supabase DB 연결하기
 
+이 항목은 Supabase를 선택하거나 배포를 준비할 때 진행합니다. SQLite 로컬 개발에는 필요하지 않으며 [SQLite 안내](SQLITE.md)를 따르면 됩니다. SQLite에서 Supabase로 전환할 때는 모델·이력·데이터 이전 여부를 별도로 검토합니다.
+
 DB가 필요할 때 [Supabase DB 설정과 연결하기](SUPABASE_SETUP.md)을 순서대로 따라 하세요. 회원가입·DB 생성, 공개 CA 다운로드, 두 연결 주소 확인, `.env` 등록, 테이블 생성과 오류 해결을 자세히 설명합니다.
 
 | 준비할 항목    | 저장 위치·역할                                                                 |
@@ -169,6 +192,8 @@ DB를 변경하는 명령과 shadow DB 설정·생성 결과 확인은 [Supabase
 
 ## 5. 검사 명령
 
+전체 명령의 SQLite·Supabase 비교, DB 변경 여부와 실행 순서는 [실행 명령 안내](SCRIPTS.md)를 참고하세요. 아래는 기본 SQLite 검사 예시입니다.
+
 ```bash
 npm run check
 npm run db:validate
@@ -176,7 +201,7 @@ npm run build
 npm audit
 ```
 
-`check`는 타입·린트·포맷을 검사합니다. 예제 전용 테스트와 테스트 실행 도구는 제거했으며, 서비스 기능을 추가할 때 필요한 테스트를 구성하세요. `db:validate`는 스키마 문법 검사이며 DB 접속 검증은 아닙니다. 실제 .env와 인증서를 준비했다면 별도로 npm run db:check를 실행해 DB 변경 없이 연결을 확인합니다.
+`check`는 SQLite 기준으로 타입·린트·포맷을 검사하고 `build`도 SQLite 기준입니다. Supabase 검사는 `npm run check:supabase`, 빌드는 `npm run build:supabase`를 사용하세요. 예제 전용 테스트와 테스트 실행 도구는 제거했으며, 서비스 기능을 추가할 때 필요한 테스트를 구성하세요. `db:validate`는 SQLite 스키마 문법 검사이며 DB 접속 검증은 아닙니다. 기존 SQLite 파일의 읽기 전용 연결 검사는 `npm run db:check`를 사용합니다. DB 파일이 없으면 생성하지 않으므로 먼저 `npm run dev` 또는 `npm run db:sqlite:setup`으로 준비하세요. 이 검사는 테이블·CRUD 검증을 대신하지 않습니다. Supabase 스키마에는 `npm run db:supabase:validate`를 사용합니다. 실제 .env와 인증서를 준비했다면 별도로 npm run db:supabase:check를 실행해 DB 변경 없이 연결을 확인합니다.
 
 **검사 명령도 자동 생성 파일을 만들 수 있습니다.** npm run check는 내부의 typecheck에서 Prisma Client와 Next.js 타입을 생성하고 TypeScript 검사를 실행합니다. 직접 작성한 소스와 실제 DB를 수정하는 명령은 아니지만 src/generated_prisma/, .next/, next-env.d.ts, tsconfig.tsbuildinfo 등의 생성·갱신이 일어날 수 있습니다. 이 파일들은 Git 제외 대상으로 유지합니다. npm run build도 배포용 생성물을 만듭니다.
 
@@ -198,7 +223,7 @@ npm audit
 
 작업 결과는 **지침만 제공 / 코드 구현 / 로컬 검증 / DB 검증 / 배포 검증**을 구분해 확인하세요. 안내가 있거나 패키지가 설치됐다고 기능이 구현된 것은 아니며, 빌드 성공이 실제 DB·브라우저·배포 동작 성공을 뜻하지도 않습니다. 해당 기능과 환경에서 실제 확인한 결과·실패·미검증 이유를 에이전트에게 요청하면 됩니다. 관련 기록은 [계획 양식](../plans/README.md)을 참고하세요.
 
-개발 중에는 로컬 터미널에서 npm run check를 실행합니다. Vercel에서는 Build Command를 npm run check && npm run build로 설정해 검사 후 빌드합니다. 검사 실패는 해당 터미널 또는 Vercel 배포의 빌드 로그에서 확인하세요. 자세한 위치는 [배포 안내](VERCEL_DEPLOYMENT.md)에 있습니다.
+개발 중에는 로컬 터미널에서 npm run check를 실행합니다. Vercel에서는 Build Command를 npm run check:supabase && npm run build:supabase로 설정해 검사 후 빌드합니다. 검사 실패는 해당 터미널 또는 Vercel 배포의 빌드 로그에서 확인하세요. 자세한 위치는 [배포 안내](VERCEL_DEPLOYMENT.md)에 있습니다.
 
 GitHub Actions는 선택 사항이며 기본 .github/ 폴더는 제공하지 않습니다. Windows·Linux 검사가 필요해졌을 때 [GitHub Actions 사용하기 (선택 사항)](GITHUB_ACTIONS.md)의 예시를 따라 별도로 추가할 수 있습니다. 처음에는 추가하지 않아도 됩니다.
 

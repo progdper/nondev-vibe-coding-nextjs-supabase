@@ -7,8 +7,8 @@ config({ quiet: true });
 
 // Generation/build need no database. Migration commands require DIRECT_URL.
 export default defineConfig({
-  schema: 'prisma/schema.prisma',
-  migrations: { path: 'prisma/migrations' },
+  schema: 'prisma/supabase/schema.prisma',
+  migrations: { path: 'prisma/supabase/migrations' },
   datasource: {
     url: getPrismaDatasourceUrl(process.env.DIRECT_URL),
     shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL

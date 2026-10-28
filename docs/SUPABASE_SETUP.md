@@ -6,6 +6,8 @@ Supabase 프로젝트를 만들면 PostgreSQL 데이터베이스가 준비됩니
 
 ## 준비하기
 
+로컬 학습·기능 개발만 먼저 한다면 [파일 기반 SQLite](SQLITE.md)를 사용할 수 있습니다. 이 문서는 Supabase 선택 시의 절차입니다. SQLite용 명령·이력을 Supabase에 그대로 적용하지 마세요.
+
 - Supabase 계정과 개발·테스트용 프로젝트를 준비합니다.
 - 편집기에서 보일러플레이트 프로젝트를 엽니다. 이 문서에서 **프로젝트 폴더**는 `package.json`이 있는 폴더를 뜻합니다. 복사한 폴더의 이름이나 위치는 달라도 됩니다.
 - [기본 실행 안내](SETUP.md)에 따라 Node.js 24와 패키지 설치를 준비합니다.
@@ -183,7 +185,7 @@ Prisma CLI는 `.env.local` → `.env` 순으로 읽고 기존 프로세스 환�
 설치가 끝난 프로젝트 폴더의 터미널에서 실행합니다. Windows PowerShell과 Linux에서 같은 명령을 사용합니다.
 
 ```bash
-npm run db:validate
+npm run db:supabase:validate
 ```
 
 성공하면 Prisma 스키마가 유효하다는 메시지가 표시됩니다. **이 검사는 실제 Supabase 접속·비밀번호·읽기·쓰기 성공을 확인하지 않습니다.**
@@ -193,7 +195,7 @@ npm run db:validate
 .env에 두 연결 주소를 입력하고 certs/supabase-ca.crt를 준비했다면 다음 명령을 실행합니다. Windows와 Linux에서 같은 명령을 사용합니다.
 
 ```bash
-npm run db:check
+npm run db:supabase:check
 ```
 
 - DATABASE_URL은 앱과 같은 TLS 설정을 사용해 SELECT 1을 조회합니다.
@@ -234,26 +236,26 @@ npm run db:check
 
 ### Prisma 스키마의 문서 주석
 
-`prisma/schema.prisma`에서 `///`로 시작하는 문서 주석은 모델·필드의 목적, 관계·제약의 이유, 단위·시간 기준과 주의점을 설명할 때 사용합니다. 필드명만 반복하는 설명은 생략하고 실제 구현이 바뀌면 함께 갱신합니다. 주석은 DB 제약·권한 검사·인증 구현을 대신하지 않습니다. 주석 추가만으로 DB 구조가 변경되거나 마이그레이션이 실행되지는 않습니다.
+`prisma/supabase/schema.prisma`에서 `///`로 시작하는 문서 주석은 모델·필드의 목적, 관계·제약의 이유, 단위·시간 기준과 주의점을 설명할 때 사용합니다. 필드명만 반복하는 설명은 생략하고 실제 구현이 바뀌면 함께 갱신합니다. 주석은 DB 제약·권한 검사·인증 구현을 대신하지 않습니다. 주석 추가만으로 DB 구조가 변경되거나 마이그레이션이 실행되지는 않습니다.
 
 현재 User는 앱 회원 정보용 모델이고 로그인·Supabase Auth 연결은 미구현입니다. 이런 상태를 주석으로 설명할 수 있지만, 이 안내를 추가한 것만으로 스키마에 주석을 넣거나 인증을 구현한 것은 아닙니다. [스키마 주석 지침](../.agent/database.md#스키마-문서-주석)을 참고하세요.
 
 ### 7-2. 개발 DB에 `users` 테이블 생성
 
-보일러플레이트의 `prisma/schema.prisma`에는 앱용 `User` 모델이 있습니다. 실제 DB의 테이블 이름은 `users`이며 `id`, `email`, `name`, `createdAt`, `updatedAt` 필드를 갖습니다. Supabase Auth의 `auth.users`와는 별개이고 로그인 기능은 포함하지 않습니다.
+보일러플레이트의 `prisma/supabase/schema.prisma`에는 앱용 `User` 모델이 있습니다. 실제 DB의 테이블 이름은 `users`이며 `id`, `email`, `name`, `createdAt`, `updatedAt` 필드를 갖습니다. Supabase Auth의 `auth.users`와는 별개이고 로그인 기능은 포함하지 않습니다.
 
 **다음 명령은 마이그레이션 파일을 만들고 실제 DB를 변경합니다.** 데이터가 없는 개발·테스트 DB가 대상인지 먼저 확인하세요. 기존 데이터·테이블·마이그레이션 이력이 있는 프로젝트에서는 초기 생성 명령을 그대로 실행하지 말고 현재 상태부터 확인해야 합니다. Codex가 대신 실행한다면 별도로 DB 변경을 승인해야 합니다.
 
 처음 설정한 빈 개발 DB에 기본 모델을 적용할 때:
 
 ```bash
-npm run db:migrate:dev -- --name init
+npm run db:supabase:migrate:dev -- --name init
 ```
 
 완료 메시지를 확인한 뒤 Prisma Client를 생성합니다.
 
 ```bash
-npm run db:generate
+npm run db:supabase:generate
 ```
 
 마이그레이션 중 shadow DB 권한 오류가 나면 중단하고 설정을 확인하세요. shadow DB는 Prisma가 변경 내용을 비교할 때 쓰는 별도 작업용 DB입니다. 필요한 경우 `.env.example`의 `SHADOW_DATABASE_URL` 안내를 참고하되, **운영 DB나 사용 중인 개발 DB를 shadow DB로 지정하지 마세요.** 오류를 피하려고 초기화·reset 명령을 실행하지 않습니다.
@@ -295,7 +297,7 @@ Codex에는 다음처럼 요청할 수 있습니다.
 개발 서버를 실행합니다.
 
 ```bash
-npm run dev
+npm run dev:supabase
 ```
 
 현재 보일러플레이트는 기본 첫 화면만 제공하고 DB를 조회·수정하는 화면은 없습니다. `.env`를 저장하거나 첫 화면을 열기만 해서는 앱의 DB 연결 여부를 알 수 없습니다.
@@ -342,7 +344,7 @@ npm run dev
 - [ ] 사용할 개발·테스트 프로젝트가 준비되어 있습니다.
 - [ ] 해당 프로젝트의 공식 CA가 `certs/supabase-ca.crt`에 있습니다.
 - [ ] 프로젝트 루트의 `.env`에 두 연결 주소와 올바른 DB 비밀번호를 설정했습니다.
-- [ ] `npm run db:validate`로 스키마 문법을 확인했습니다.
+- [ ] `npm run db:supabase:validate`로 스키마 문법을 확인했습니다.
 - [ ] 필요한 경우 승인된 개발 DB에 마이그레이션을 적용하고 `public.users`를 확인했습니다.
 - [ ] 별도 검증 코드로 로컬 앱의 읽기·쓰기를 확인했습니다.
 

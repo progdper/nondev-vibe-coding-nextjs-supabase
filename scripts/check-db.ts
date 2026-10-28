@@ -101,6 +101,8 @@ async function checkPrisma(): Promise<CheckResult> {
         'db',
         'pull',
         '--print',
+        '--config',
+        'prisma.config.ts',
       ],
       { timeout: 30_000, maxBuffer: 4 * 1024 * 1024, windowsHide: true },
     );

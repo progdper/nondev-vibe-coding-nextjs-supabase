@@ -43,17 +43,43 @@ package.json의 이름을 바꿀 때는 관련 lock 파일도 함께 갱신해�
 
 ## 4. DB가 필요한 프로젝트
 
-상세 절차는 [Supabase 안내](SUPABASE_SETUP.md)를 따릅니다.
+먼저 [시작 안내의 상황별 선택](SETUP.md#db와-인증이-필요해지면-선택하기)을 확인하세요. Supabase 계정이 있다는 이유로 DB·인증 방식을 자동 결정하지 않으며, 선택한 기능에 필요한 항목만 진행합니다.
+
+### DB와 인증 선택 확인
+
+선택한 모드의 명령과 DB 변경 여부는 [실행 명령 안내](SCRIPTS.md)에서 확인하세요.
+
+- [ ] Supabase 준비 상태를 확인했습니다: 계정 없음 / 계정만 있음 / 테스트 프로젝트 준비됨 / 운영 프로젝트만 있음.
+- [ ] 로컬 개발 DB를 SQLite 또는 테스트 Supabase로 정했습니다.
+- [ ] 배포 필요 여부와 배포용 DB를 따로 정했습니다. 파일 SQLite를 그대로 Vercel 운영 DB로 사용하는 구성은 지원하지 않습니다.
+- [ ] 인증 필요 여부와 방식을 따로 정했습니다: 아직 불필요 / Supabase Auth / 별도 Next.js 인증 라이브러리.
+- [ ] 현재 코드에 구현된 인증 방식을 확인했습니다. SQLite를 선택해도 Supabase Auth가 자동으로 로컬 인증으로 바뀌지 않음을 확인했습니다.
+- [ ] 운영 .env·DB·인증 계정을 로컬 테스트에 재사용하지 않도록 테스트 환경을 구분했습니다. 앱 검증 시 운영 .env가 있으면 실제 환경 파일을 제외한 별도 작업 복사본을 사용합니다.
+- [ ] 이미 정한 선택을 에이전트에게 전달했습니다. 계획 기록이 필요하면 기존 승인 절차에 따라 남깁니다.
+
+### SQLite를 선택했다면
+
+- [ ] [SQLite 안내](SQLITE.md)에 따라 로컬 실행·명령·파일 저장 위치를 확인했습니다. SQLite DB만 개발할 때는 Supabase 계정이나 DB 연결 정보가 필요하지 않습니다.
+- [ ] SQLite 전용 DB 연결 검사와 앱 기능 검증을 구분했습니다. 인증·전체 화면이 외부 서비스에 의존하는지도 확인했습니다.
+- [ ] 이후 Supabase로 전환할 경우 두 스키마의 모델·타입·관계·제약과 기존 데이터 보존·이전 필요성을 별도로 검토하기로 했습니다. 전체 스키마·마이그레이션 이력을 덮어쓰지 않습니다.
+
+### Supabase DB를 선택했다면
+
+상세 절차는 [Supabase 안내](SUPABASE_SETUP.md)를 따릅니다. **Supabase Auth만 선택한 경우 아래 DB용 CA·연결 주소 설정을 일괄 적용하지 말고**, [인증 안내](AUTHENTICATION.md)에 따라 실제 인증 구현에 필요한 설정을 확인하세요.
 
 - [ ] 내 개발·테스트용 Supabase 프로젝트를 준비했습니다.
 - [ ] 내 프로젝트의 공식 CA를 certs/supabase-ca.crt에 저장했습니다.
 - [ ] 루트 .env에 DATABASE_URL·DIRECT_URL을 설정하고 Git에서 제외되는지 확인했습니다.
-- [ ] npm run db:check로 DB 변경 없이 두 연결을 확인했습니다.
-- [ ] 기본 User 모델이 필요한지 확인했습니다. 이 모델은 로그인 기능이나 Supabase Auth 연동을 제공하지 않습니다.
+- [ ] npm run db:supabase:check로 DB 변경 없이 두 연결을 확인했습니다.
 - [ ] 테이블이 필요하면 개발 DB 변경 범위를 확인한 후 마이그레이션을 적용했습니다.
-- [ ] 기능 개발 후 실제 데이터의 읽기·쓰기와 권한을 별도로 검증했습니다.
 
-src/generated_prisma/는 자동 생성 코드입니다. 직접 수정하지 않고 prisma/schema.prisma를 기준으로 생성합니다. 다른 프로젝트에서의 기존 연결 성공 기록만으로 내 프로젝트도 성공한다고 판단하지 마세요.
+### 선택한 기능의 실제 검증
+
+- [ ] 기본 User 모델이 필요한지 확인했습니다. 원본 모델은 로그인 기능이나 Supabase Auth 연동을 제공하지 않습니다.
+- [ ] 기능 개발 후 실제 데이터의 읽기·쓰기와 권한을 별도로 검증했습니다.
+- [ ] 가입·로그인이 필요하다면 인증 계정 생성·앱 회원 정보 저장·로그인·로그아웃을 선택한 테스트 환경에서 확인했습니다. dev 실행 성공이나 화면에 오류가 없는 것만으로 전체 검증 완료로 기록하지 않습니다.
+
+src/generated_prisma/는 자동 생성 코드입니다. 직접 수정하지 않고 실행 모드에 따라 prisma/supabase/schema.prisma 또는 prisma/sqlite/schema.prisma를 기준으로 생성합니다. 다른 프로젝트에서의 기존 연결 성공 기록만으로 내 프로젝트도 성공한다고 판단하지 마세요.
 
 ## 5. README와 로컬 검사
 
@@ -63,7 +89,7 @@ README의 **프로젝트 개요부터 시작하는 작성 양식**은 항목 구
 - [ ] AGENTS.md와 .agent/의 초기 구성 설명이 현재 코드와 맞는지 확인했습니다.
 - [ ] 원본 보일러플레이트의 검증 기록과 내 프로젝트의 검증 결과를 구분했습니다.
 - [ ] 문서 갱신을 보류한 항목과 아직 검증하지 않은 범위를 구분했습니다.
-- [ ] npm run check와 npm run build를 통과했습니다.
+- [ ] 선택한 DB 모드에서 검사·빌드를 통과했습니다. 로컬 SQLite는 npm run check·npm run build, Supabase는 npm run check:supabase·npm run build:supabase를 사용합니다. 두 모드는 같은 폴더에서 동시에 실행하지 않습니다. [SQLite 안내](SQLITE.md)
 - [ ] GitHub에 올릴 파일에 실제 .env·node_modules·.next·생성 코드가 포함되지 않았는지 확인했습니다. 이미 추적 중인 파일은 .gitignore만으로 제외되지 않습니다.
 
 GitHub Actions는 기본 설정에 포함하지 않습니다. 필요할 때만 [선택적 Actions 안내](GITHUB_ACTIONS.md)를 따라 도입하고, 도입한 경우에만 Windows·Linux 검사 결과를 별도로 확인하세요.
@@ -71,7 +97,7 @@ GitHub Actions는 기본 설정에 포함하지 않습니다. 필요할 때만 [
 ## 6. 배포가 필요할 때
 
 - [ ] [배포 안내](VERCEL_DEPLOYMENT.md)를 확인했습니다.
-- [ ] Vercel Build Command를 npm run check && npm run build로 설정했습니다.
+- [ ] Vercel Build Command를 npm run check:supabase && npm run build:supabase로 설정했습니다.
 - [ ] 로컬 .env와 별도로 Vercel 환경 변수를 설정했습니다.
 - [ ] Preview와 운영 DB를 구분했습니다.
 - [ ] 배포 주소에서 실제 동작과 DB 읽기·쓰기를 확인했습니다.

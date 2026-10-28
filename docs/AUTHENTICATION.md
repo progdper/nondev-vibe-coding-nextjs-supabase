@@ -6,8 +6,10 @@
 
 ## 현재 보일러플레이트 상태
 
+- 로컬 [SQLite](SQLITE.md)도 선택할 수 있지만 Supabase Auth를 로컬 DB로 대체하는 기능은 아닙니다. Next.js 인증 라이브러리를 SQLite에 연동하려면 해당 버전의 어댑터·모델·메일·권한을 별도로 설계하고, PostgreSQL 전환 시 다시 검증합니다.
+
 - Next.js, Prisma와 Supabase PostgreSQL 연결 구성이 있습니다.
-- `prisma/schema.prisma`의 `User`는 UUID id, email, name, 생성·수정 시각을 갖는 앱 회원 모델입니다. 비밀번호·세션 모델은 없습니다.
+- `prisma/supabase/schema.prisma`의 `User`는 UUID id, email, name, 생성·수정 시각을 갖는 앱 회원 모델입니다. 비밀번호·세션 모델은 없습니다.
 - Supabase Auth 사용자와 현재 `User` 모델의 연결은 구현되어 있지 않습니다.
 - 아래 인증 패키지는 기본 의존성에 없으며 가입·로그인·비밀번호 재설정 화면도 없습니다.
 - DB 연결 검사 성공은 회원가입·로그인 기능 검증을 뜻하지 않습니다.

@@ -96,9 +96,9 @@
 
 ## 검증
 
-- 변경 파일 확인 후 `npm run check`를 실행하고 실행 코드·설정 변경이면 `npm run build`를 확인한다.
+- 변경 파일 확인 후 대상 DB 모드에 맞춰 SQLite는 `npm run check`·`npm run build`, Supabase는 `npm run check:supabase`·`npm run build:supabase`를 확인한다. 실행 코드·설정 변경이면 해당 빌드를 포함한다.
 - npm run check도 typecheck 과정에서 Prisma Client·Next.js 타입·TypeScript 증분 파일 등을 생성·갱신할 수 있음을 설명한다. 직접 작성한 소스·실제 DB 변경과 자동 생성물 갱신을 구분하고, 생성물은 Git 제외 규칙을 유지한다.
-- DB 스키마를 수정했다면 `npm run db:validate`도 실행한다.
+- DB 스키마를 수정했다면 SQLite는 `npm run db:validate`, Supabase는 `npm run db:supabase:validate`도 실행한다.
 - 기능에 맞춰 오류·빈 데이터·입력 경계·주요 동작을 확인한다. 중요한 로직에는 필요한 테스트 구성을 제안한다.
 - 현재 테스트 실행 명령이 없으므로 `npm test`가 있다고 가정하지 않는다.
 - 검사 실패와 미검증 항목을 구분하여 보고한다.

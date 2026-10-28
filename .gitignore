@@ -44,3 +44,6 @@ next-env.d.ts
 !.env.example
 /src/generated_prisma/
 *.log
+
+# Local SQLite data and journal/WAL files.
+/prisma/sqlite/*.db*

@@ -6,11 +6,13 @@
 
 ## 1. 배포 전 로컬 확인
 
+SQLite로 개발했다면 [전환 절차](SQLITE.md#supabasevercel로-전환)에 따라 먼저 별도 Supabase 테스트 DB에서 모델·마이그레이션·읽기·쓰기를 검증하세요. 로컬 SQLite 파일을 Vercel의 영구 DB로 배포하지 않습니다. SQLite용 빌드·실행 명령 대신 아래 Supabase용 명령을 사용하며 두 모드를 같은 폴더에서 동시에 실행하지 않습니다.
+
 package.json이 있는 프로젝트 폴더에서 실행합니다.
 
 ```bash
-npm run check
-npm run build
+npm run check:supabase
+npm run build:supabase
 ```
 
 DB 기능이 있다면 [로컬 연결과 읽기·쓰기 확인](SUPABASE_SETUP.md#8-로컬-앱-연결과-읽기쓰기-확인)까지 마친 뒤 진행하세요. 기본 첫 화면은 DB를 사용하지 않으므로 첫 화면이나 빌드 성공만으로 DB 기능을 검증할 수 없습니다.
@@ -22,12 +24,12 @@ DB 기능이 있다면 [로컬 연결과 읽기·쓰기 확인](SUPABASE_SETUP.m
 1. 내 프로젝트의 GitHub 저장소를 Vercel에서 가져옵니다. GitHub 연결 시 필요한 저장소만 선택하고 요청되는 접근 권한을 확인하세요.
 2. Framework Preset은 **Next.js**, Node.js는 **24**를 선택합니다.
 3. Root Directory는 package.json이 있는 실제 프로젝트 위치로 설정합니다. 저장소 루트가 프로젝트라면 기본값을 사용하고, 상위 폴더까지 저장했다면 해당 하위 폴더를 지정합니다. 폴더 이름을 고정값으로 가정하지 마세요.
-4. Install Command는 **npm ci**, Build Command는 **npm run check && npm run build**로 설정합니다.
+4. Install Command는 **npm ci**, Build Command는 **npm run check:supabase && npm run build:supabase**로 설정합니다.
 5. 설정을 저장하고 다음 환경 변수·DB 준비 사항을 확인한 뒤 배포합니다.
 
 기존 Vercel 프로젝트는 **Settings → Build and Deployment → Build Command**에서 명령을 지정합니다. 화면에 Override 선택이 있으면 켜고 입력하세요. 설정 변경은 다음 배포부터 반영됩니다. [Vercel 빌드 설정 공식 안내](https://vercel.com/docs/builds/configure-a-build#build-command)
 
-npm run check가 실패하면 && 뒤의 빌드는 실행되지 않습니다. 실패한 단계는 해당 배포 화면의 빌드 로그에서 확인하세요. npm run build 자체는 Prisma Client 생성과 Next.js 빌드를 수행하며, 마이그레이션은 실행하지 않습니다.
+npm run check:supabase가 실패하면 && 뒤의 빌드는 실행되지 않습니다. 실패한 단계는 해당 배포 화면의 빌드 로그에서 확인하세요. npm run build:supabase 자체는 Prisma Client 생성과 Next.js 빌드를 수행하며, 마이그레이션은 실행하지 않습니다.
 
 GitHub Actions는 필요할 때만 [선택 안내서](GITHUB_ACTIONS.md)를 따라 추가합니다. 기본 배포 과정에 필수인 기능은 아닙니다.
 
@@ -73,7 +75,7 @@ certs/supabase-ca.crt는 공개 CA이므로 Git 저장소에 포함합니다. ne
 4. 승인된 실행 환경에서 검토한 마이그레이션을 적용합니다.
 
 ```bash
-npm run db:migrate:deploy
+npm run db:supabase:migrate:deploy
 ```
 
 새 코드가 새 테이블·컬럼을 필요로 한다면 사용 가능하도록 DB 준비와 코드 배포 순서를 조정합니다. 운영에는 migrate dev·migrate reset·db push를 실행하지 않습니다. 모든 Vercel 빌드에 마이그레이션을 자동 연결하지 않으며, 코드 롤백이 DB 스키마나 데이터를 복구한다고 가정하지 않습니다.
@@ -86,7 +88,7 @@ npm run db:migrate:deploy
 4. 검증이 끝나면 확인용 데이터를 정리하고 실제 수행한 범위만 기록합니다.
 5. README의 기존 양식을 유지하면서 실제 배포 주소를 작성합니다.
 
-npm run db:check는 실행한 로컬 환경의 연결 점검입니다. Vercel 배포 주소의 DB 읽기·쓰기 성공을 대신하지 않습니다. 배포한 앱에 DB 조회·수정 기능이 없다면, 배포 환경의 DB 검증에 사용할 방법과 임시 코드의 제거 계획을 먼저 정합니다.
+npm run db:supabase:check는 실행한 로컬 환경의 연결 점검입니다. Vercel 배포 주소의 DB 읽기·쓰기 성공을 대신하지 않습니다. 배포한 앱에 DB 조회·수정 기능이 없다면, 배포 환경의 DB 검증에 사용할 방법과 임시 코드의 제거 계획을 먼저 정합니다.
 
 화면 접근·DB 읽기·DB 쓰기·인증과 권한 검증은 각각 구분하여 실제 수행한 범위만 기록합니다.
 

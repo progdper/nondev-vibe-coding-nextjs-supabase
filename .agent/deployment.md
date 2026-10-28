@@ -15,7 +15,9 @@ Vercel 설정, 빌드, 배포, 운영 환경 변수와 운영 장애 작업에 �
 
 ## Vercel 설정과 비밀값
 
-- Framework Preset은 Next.js, 설치 명령은 `npm ci`, 빌드 명령은 `npm run check && npm run build`를 기준으로 한다.
+- 파일 기반 SQLite는 로컬 개발 전용이다. Vercel에서는 Supabase용 check·build 명령과 연결을 사용하고 SQLite 명령·데이터 파일을 배포하지 않는다. SQLite 사용 프로젝트는 PostgreSQL 스키마·별도 이력·이전 여부와 실제 기능을 전환 검증한다. 운영 DB로 테스트하지 않는다.
+
+- Framework Preset은 Next.js, 설치 명령은 `npm ci`, 빌드 명령은 `npm run check:supabase && npm run build:supabase`를 기준으로 한다.
 - Root Directory는 실제 저장소 구조에 맞춘다. 폴더명을 복사한 프로젝트에서 고정값으로 가정하지 않는다.
 - Development·Preview·Production 환경 변수를 분리한다.
 - Vercel 배포 환경과 연결 DB의 용도(개발·테스트·운영)를 각각 확인한다. Production 배포라는 이유만으로 운영 DB라고 가정하지 않는다.
@@ -47,7 +49,7 @@ Vercel 설정, 빌드, 배포, 운영 환경 변수와 운영 장애 작업에 �
 
 ## 검증과 전달
 
-- `npm run check`, `npm run build`와 변경에 맞는 주요 기능을 확인한다.
+- `npm run check:supabase`, `npm run build:supabase`와 변경에 맞는 주요 기능을 확인한다.
 - DB가 필요 없는 기본 첫 화면은 DB 연결 정보 없이 빌드되는 구성을 유지한다.
 - `npm audit` 결과와 Node.js 런타임 보안 상태는 별개로 관리한다.
 - Linux/Vercel에서 직접 확인하지 않았다면 Windows 검사만으로 해당 환경 검증이 완료됐다고 말하지 않는다.

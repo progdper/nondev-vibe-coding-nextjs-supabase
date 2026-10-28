@@ -4,12 +4,12 @@
 
 ## 기본 검사 방법
 
-| 상황           | 실행할 명령                                           | 결과 확인                        |
-| -------------- | ----------------------------------------------------- | -------------------------------- |
-| 개발 중        | npm run check                                         | 로컬 터미널                      |
-| 로컬 빌드 확인 | npm run build                                         | 로컬 터미널                      |
-| Vercel 배포    | Build Command를 npm run check && npm run build로 지정 | Vercel 배포의 빌드 로그          |
-| DB 설정 후     | npm run db:check                                      | 로컬 터미널, 읽기 전용 연결 결과 |
+| 상황           | 실행할 명령                                                             | 결과 확인                        |
+| -------------- | ----------------------------------------------------------------------- | -------------------------------- |
+| 개발 중        | npm run check                                                           | 로컬 터미널                      |
+| 로컬 빌드 확인 | npm run build                                                           | 로컬 터미널                      |
+| Vercel 배포    | Build Command를 npm run check:supabase && npm run build:supabase로 지정 | Vercel 배포의 빌드 로그          |
+| DB 설정 후     | npm run db:supabase:check                                               | 로컬 터미널, 읽기 전용 연결 결과 |
 
 Vercel의 검사 실패 시 뒤의 빌드를 실행하지 않도록 &&로 연결합니다. 설정 위치와 절차는 [배포 안내](VERCEL_DEPLOYMENT.md)를 따르세요. Vercel 검사는 Windows 호환성 검사를 대신하지 않습니다.
 
@@ -67,12 +67,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Check types, lint and formatting
-        run: npm run check
+        run: npm run check:supabase
       - name: Validate Prisma schema
-        run: npm run db:validate
+        run: npm run db:supabase:validate
       - name: Build without database credentials
-        run: npm run build
+        run: npm run build:supabase
 ```
+
+위 워크플로 예시는 Supabase 배포용 검사·빌드를 실행합니다. 로컬 SQLite만 검사하려면 두 명령을 각각 `npm run check`·`npm run build`로 바꾸고 스키마 검사도 `npm run db:sqlite:validate`로 맞추세요.
 
 ## 2. 수동 실행과 결과 확인
 
@@ -94,7 +96,7 @@ on:
   workflow_dispatch:
 ```
 
-GitHub Actions 검사와 Vercel 배포는 기본적으로 별개입니다. **이 예시에서 Actions 실패가 Vercel 배포를 자동으로 막지는 않습니다.** Vercel에서도 npm run check && npm run build를 유지하세요. 검사 결과를 병합 필수 조건으로 정하는 것은 별도 저장소 설정입니다.
+GitHub Actions 검사와 Vercel 배포는 기본적으로 별개입니다. **이 예시에서 Actions 실패가 Vercel 배포를 자동으로 막지는 않습니다.** Vercel에서도 npm run check:supabase && npm run build:supabase를 유지하세요. 검사 결과를 병합 필수 조건으로 정하는 것은 별도 저장소 설정입니다.
 
 ## 사용을 중단할 때
 

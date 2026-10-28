@@ -44,7 +44,7 @@
 - Server Action·Route Handler·인증·권한·입력 검증·캐시·환경 변수: 개발 지침과 [서버 지침](.agent/server.md).
 - 오류 재현·원인 분석·로그 추적: 개발 지침과 [오류 추적 지침](.agent/troubleshooting.md), 오류가 발생한 영역의 지침.
 - 인증·권한·개인정보·비밀값·외부 입력·공개 API·파일 업로드·외부 서비스 연동, 배포 전 보안 검토·유출 대응: [보안 지침](.agent/security.md)과 해당 영역 지침. 기능 개발·코드 검토에서는 이 항목에 해당하는지 먼저 판단해 필요한 기준을 적용한다.
-- Prisma, Supabase, DB 모델, 쿼리, 데이터 권한, 마이그레이션: [DB 지침](.agent/database.md).
+- Prisma, Supabase, DB 모델, 쿼리, 데이터 권한, 마이그레이션: [DB 지침](.agent/database.md). SQLite 모델 변경을 Supabase에 옮기는 요청은 [스키마 반영 절차](.agent/database.md#sqlite-모델-변경을-supabase에-반영)에 따라 비교·변경안 제시·승인 후 반영한다.
 - Vercel, 빌드, 배포, 운영 환경 변수, 운영 장애: [배포 지침](.agent/deployment.md).
 - GitHub 협업, 브랜치, 팀 변경 반영, 파일 이동·이름 변경, 충돌 해결, PR·병합 작업: [협업 지침](.agent/collaboration.md).
 - 여러 영역에 걸치면 해당 문서를 모두 읽는다. 화면과 서버를 연결하는 기능은 프론트엔드·서버 지침을 함께 확인한다. 로그인 기능은 개발·서버·DB 지침과 필요한 화면 지침을 확인한다.
@@ -77,6 +77,10 @@ DB가 필요 없는 기능이나 문구·스타일 수정은 관련 단계만 �
 - 설치·DB·배포의 상세 안내는 담당 docs/ 문서에서 갱신한다. README의 시작 안내 링크는 경로 변경 시 확인하며, 프로젝트 개요 이후의 제목·항목 구조와 작성 양식을 임의로 변경하지 않는다. 프로젝트 내용 작성이 요청된 경우에도 승인된 범위에서 기존 양식을 유지한다.
 - 새 프로젝트의 package.json 작성자 정보는 승인 후 변경할 수 있지만, 포함된 LICENSE와 원 제작자 progdper의 MIT 저작권·허가 고지는 보존한다. 자세한 사용자 안내는 [제작자 정보와 라이선스](docs/CUSTOMIZE_PROJECT.md#3-제작자-정보와-라이선스)를 따른다.
 
+## DB 선택과 작업 기준
+
+DB 작업 전 [DB 지침](.agent/database.md#시작-시-db와-인증-선택-확인)을 읽고 SQLite·Supabase 중 대상 모드와 인증 방식을 각각 확인한다. Supabase 계정·프로젝트 준비 여부와 테스트·운영 용도는 필요한 시점에 확인하고 이미 정한 선택은 반복해서 묻지 않는다. 명령·스키마·인증 구성은 실제 프로젝트 파일을 기준으로 판단한다.
+
 ## 보일러플레이트 초기 구조
 
 아래 설명은 보일러플레이트의 초기 구성이다. 복사한 프로젝트에서는 실제 파일·의존성·스키마·실행 명령을 확인하며, 초기 설명만으로 기능이 없거나 검증이 완료됐다고 판단하지 않는다.
@@ -85,12 +89,14 @@ DB가 필요 없는 기능이나 문구·스타일 수정은 관련 단계만 �
 - `src/app/`: Next.js App Router의 화면, 공통 레이아웃, 스타일.
 - `src/lib/db.ts`: 서버 전용 Prisma 연결.
 - `src/lib/env.ts`: 서버 전용 환경 변수 검증.
-- `prisma/schema.prisma`: DB 모델과 Prisma Client 생성 설정.
-- `prisma.config.ts`: Prisma CLI의 환경 변수·연결 설정.
+- `prisma/supabase/schema.prisma`: Supabase용 DB 모델과 Prisma Client 생성 설정.
+- `prisma.config.ts`: Supabase용 CLI의 환경 변수·연결 설정.
+- `prisma/sqlite/schema.prisma`·`prisma.sqlite.config.ts`: SQLite용 모델과 CLI 설정.
 - `.env.example`: 비밀값이 없는 환경 변수 예시.
 - `src/generated_prisma/`: 자동 생성되는 코드. 직접 수정하지 않는다.
 - `plans/README.md`: 기능별 작업 계획의 양식·KST 파일명·작성자 확인 기준. 실제 계획은 필요할 때 승인 후 생성한다.
-- `scripts/check-db.ts`: DB를 변경하지 않는 수동 연결 점검.
+- `scripts/check-sqlite.ts`: 기본 db:check의 SQLite 읽기 전용 연결 점검. DB가 없으면 생성하지 않는다.
+- `scripts/check-db.ts`: db:supabase:check의 Supabase 읽기 전용 연결 점검.
 - `docs/GITHUB_ACTIONS.md`: 필요할 때 도입하는 선택적 검사 안내. 기본 `.github/` 폴더는 없으며 요청 없이 생성하지 않는다.
 - 현재 로그인·CRUD 화면과 테스트 실행 명령은 없다. 존재한다고 가정하지 않는다.
 
@@ -124,7 +130,7 @@ DB가 필요 없는 기능이나 문구·스타일 수정은 관련 단계만 �
 
 ## 검증과 전달
 
-- 변경 범위에 맞춰 `npm run check`, `npm run db:validate`, `npm run build`를 선택한다.
+- 변경 범위와 DB 모드에 맞춰 SQLite는 `npm run check`·`npm run build`, Supabase는 `npm run check:supabase`·`npm run build:supabase`를 선택한다. 스키마 검사는 SQLite의 db:validate와 Supabase의 db:supabase:validate를 구분한다.
 - `check`는 타입·린트·포맷 검사이며 테스트나 실제 DB 연결 검증은 아니다.
 - 패키지가 없으면 검사에 필요한 설치를 먼저 승인받는다. 실행하지 못한 검사는 이유를 알린다.
 - 문서만 변경한 경우 내용·링크·명령·인코딩을 확인하고 앱 검사 도구를 불필요하게 설치하지 않는다.
